@@ -6,17 +6,11 @@ Goosetune is a tool to get YouTube video data of Goosehouse from googleapi v3.
 
 Add this line to your application's Gemfile:
 
-```ruby
-gem 'goosetune', :git => 'git://github.com:maehachi08/goosetune.git'
+```sh
+git clone git@github.com:maehachi08/goosetune.git
+cd goosetune
+git install goosetune-0.0.1.gem
 ```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install --source https://github.com/maehachi08/goosetune/raw/master goosetune
 
 ## Usage
 
