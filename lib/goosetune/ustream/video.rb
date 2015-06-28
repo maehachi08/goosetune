@@ -10,7 +10,7 @@ class Goosetune::Ustream::Video < Goosetune::Ustream
       video_snippet['url']        = entry['url'].chomp
       video_snippet['thumbnail']  = entry['imageUrl']['medium'].chomp
       video_snippet['published']  = entry['createdAt'].chomp
-      video_snippet['totalViews'] = entry['totalViews'].chomp
+      video_snippet['view_counts'] = entry['totalViews'].chomp
       ustreams[id] = video_snippet
     end
 
