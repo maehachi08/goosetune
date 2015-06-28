@@ -17,27 +17,33 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
 
     channel_response['items'].each do |item|
       video_id = item['id']['videoId']
-      videos[video_id] = view_counts(video_id)
+      videos[video_id] = view_count(video_id)
     end
 
     videos
   end
 
+  def view_count(video_id)
+    video_result = get_request(videos_params(video_id))
+    unless video_result['items'].nil?
+      return video_result['items'].first['statistics']['viewCount'].chomp
+    end
+  end
 
-  def videos
-    videos = struct(get_request(seaech_params))
+  def get_youtubes
+    videos = struct_youtubes(get_request(seaech_params))
     channel = Goosetune::Youtube::Channel.new
     next_token = channel.next_page_token
 
     while next_token
-      videos.merge!(struct(get_request(seaech_params("&pageToken=#{next_token}"))))
+      videos.merge!(struct_youtubes(get_request(seaech_params("&pageToken=#{next_token}"))))
       next_token = channel.next_page_token("&pageToken=#{next_token}")
     end
 
     videos
   end
 
-  def struct(channel_response)
+  def struct_youtubes(channel_response)
     videos = {}
 
     channel_response['items'].each do |item|
@@ -51,26 +57,15 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
       item['snippet'].each do |snippet|
         video_snippet['published'] = snippet.last.chomp if snippet.first == 'publishedAt'
         video_snippet['title']     = snippet.last.chomp if snippet.first == 'title'
-	video_snippet['thumbnail'] = thumbnail_medium(snippet.last) if snippet.first == 'thumbnails'
+	video_snippet['thumbnail'] = snippet.last['medium']['url'].chomp if snippet.first == 'thumbnails'
       end
 
       video_snippet['original_artist'],video_snippet['original_title'] = split(video_snippet['title'])
-      video_snippet['view_counts'] = view_counts(video_id)
+      video_snippet['view_counts'] = struct_view_counts(video_id)
       video_snippet['url'] = "https://www.youtube.com/watch?v=#{video_id}"
       videos[video_id] = video_snippet
     end
     videos
-  end
-
-  def thumbnail_medium(thumbnails=nil)
-    thumbnails['medium']['url'].chomp
-  end
-
-  def view_counts(video_id)
-    video_result = get_request(videos_params(video_id))
-    unless video_result['items'].nil?
-      return video_result['items'].first['statistics']['viewCount'].chomp
-    end
   end
 
   def split(title)
