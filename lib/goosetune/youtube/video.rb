@@ -63,7 +63,7 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
           video_snippet[:published] = snippet.last.chomp
         when 'title'
           video_snippet[:title] = snippet.last.chomp
-	  video_snippet[:original_artist],video_snippet[:original_title] = split(snippet.last.chomp)
+          video_snippet[:original_artist],video_snippet[:original_title] = split(snippet.last.chomp)
         when 'thumbnails'
           video_snippet[:thumbnail] = snippet.last['medium']['url'].chomp
         end
