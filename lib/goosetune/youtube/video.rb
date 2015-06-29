@@ -61,7 +61,7 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
       end
 
       video_snippet['original_artist'],video_snippet['original_title'] = split(video_snippet['title'])
-      video_snippet['view_counts'] = struct_view_counts(video_id)
+      video_snippet['view_counts'] = view_count(video_id)
       video_snippet['url'] = "https://www.youtube.com/watch?v=#{video_id}"
       videos[video_id] = video_snippet
     end
