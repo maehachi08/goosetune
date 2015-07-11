@@ -1,12 +1,26 @@
 class Goosetune::Youtube::Video < Goosetune::Youtube
-  def get_view_counts
-    counts = struct_view_counts(get_request(seaech_params))
+  def term(year)
+    "&publishedAfter=#{year}-01-01t00:00:00z" + "&publishedBefore=#{year}-12-31t23:59:59z"
+  end
+
+  def get_youtubes_by_year(year='2015')
+    get_youtubes(:term => term(year))
+  end
+
+  def get_view_counts_by_year(year='2015')
+    get_view_counts(:term => term(year))
+  end
+
+  def get_view_counts(term: '')
+    counts = struct_view_counts(get_request(search_params(term)))
     channel = Goosetune::Youtube::Channel.new
     next_token = channel.next_page_token
 
     while next_token
-      counts.merge!(struct_view_counts(get_request(seaech_params("&pageToken=#{next_token}"))))
-      next_token = channel.next_page_token("&pageToken=#{next_token}")
+      options = ''
+      options = term + "&pageToken=#{next_token}"
+      counts.merge!(struct_view_counts(get_request(search_params(options))))
+      next_token = channel.next_page_token(options)
     end
 
     counts
@@ -30,14 +44,16 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
     end
   end
 
-  def get_youtubes
-    videos = struct_youtubes(get_request(seaech_params))
+  def get_youtubes(term: '')
+    videos = struct_youtubes(get_request(search_params(term)))
     channel = Goosetune::Youtube::Channel.new
-    next_token = channel.next_page_token
+    next_token = channel.next_page_token(term)
 
     while next_token
-      videos.merge!(struct_youtubes(get_request(seaech_params("&pageToken=#{next_token}"))))
-      next_token = channel.next_page_token("&pageToken=#{next_token}")
+      options = ''
+      options = term + "&pageToken=#{next_token}"
+      videos.merge!(struct_youtubes(get_request(search_params(options))))
+      next_token = channel.next_page_token(options)
     end
 
     videos

@@ -10,7 +10,7 @@ class Goosetune::Youtube
 
   # GET https://www.googleapis.com/youtube/v3/search
   #   - https://developers.google.com/youtube/v3/docs/search/list?hl=ja
-  def seaech_params(options='')
+  def search_params(options='')
     method = 'search'
     part = '?part=snippet'
     max_result = '&maxResults=50'
