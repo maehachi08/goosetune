@@ -63,28 +63,15 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
     videos = {}
 
     channel_response['items'].each do |item|
-      video_id = ''
-      item['id'].each do |id|
-        video_id = id.last.chomp if id.first == 'videoId'
-      end
-
       video_snippet = {}
-      video_snippet[:id] = video_id
+      video_snippet[:id]          = video_id = item['id']['videoId']
       video_snippet[:view_counts] = view_count(video_id)
-      video_snippet[:url] = "https://www.youtube.com/watch?v=#{video_id}"
-
-      item['snippet'].each do |snippet|
-	case snippet.first
-        when 'publishedAt'
-          video_snippet[:published] = snippet.last.chomp
-        when 'title'
-          video_snippet[:title] = snippet.last.chomp
-          video_snippet[:original_artist],video_snippet[:original_title] = split(snippet.last.chomp)
-        when 'thumbnails'
-          video_snippet[:thumbnail] = snippet.last['medium']['url'].chomp
-        end
-      end
-
+      video_snippet[:url]         = "https://www.youtube.com/watch?v=#{video_id}"
+      video_snippet[:published]   = item['snippet']['publishedAt']
+      video_snippet[:title]       = item['snippet']['title']
+      video_snippet[:thumbnail]   = item['snippet']['thumbnails']['medium']['url']
+      video_snippet[:original_artist],
+      video_snippet[:original_title] = split( item['snippet']['title'] )
       videos[video_id] = video_snippet
     end
     videos
