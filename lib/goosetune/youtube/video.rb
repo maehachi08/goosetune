@@ -63,100 +63,100 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
     videos = {}
 
     channel_response['items'].each do |item|
-      video_id = ''
-      item['id'].each do |id|
-        video_id = id.last.chomp if id.first == 'videoId'
-      end
-
       video_snippet = {}
-      video_snippet[:id] = video_id
+      video_snippet[:id]          = video_id = item['id']['videoId']
       video_snippet[:view_counts] = view_count(video_id)
-      video_snippet[:url] = "https://www.youtube.com/watch?v=#{video_id}"
-
-      item['snippet'].each do |snippet|
-	case snippet.first
-        when 'publishedAt'
-          video_snippet[:published] = snippet.last.chomp
-        when 'title'
-          video_snippet[:title] = snippet.last.chomp
-          video_snippet[:original_artist],video_snippet[:original_title] = split(snippet.last.chomp)
-        when 'thumbnails'
-          video_snippet[:thumbnail] = snippet.last['medium']['url'].chomp
-        end
-      end
-
+      video_snippet[:url]         = "https://www.youtube.com/watch?v=#{video_id}"
+      video_snippet[:published]   = item['snippet']['publishedAt']
+      video_snippet[:title]       = item['snippet']['title']
+      video_snippet[:thumbnail]   = item['snippet']['thumbnails']['medium']['url']
+      video_snippet[:original_artist],
+      video_snippet[:original_title] = split( id: video_snippet[:id], title: video_snippet[:title] )
       videos[video_id] = video_snippet
     end
     videos
   end
 
-  def split(title)
-    case title
-    when /天野春子（小泉今日子）Cover/
-      original_artist = '天野春子（小泉今日子）'
-      original_title = '潮騒のメモリー'
-    when /学園天国 フィンガー５/
-      original_artist = 'フィンガー５'
-      original_title  = '学園天国'
-    when /18歳／（Original）/
-      original_artist = 'Goosehouse'
-      original_title = title.gsub(/／[\W|\w].*/,'')
-    when /Sing／PlayYou House（Original）/
-      original_artist = 'Play You. House'
-      original_title = 'Sing'
-    when /PYHouse/
-      original_artist = 'Goosehouse'
-      original_title = title
-    when /絵本/
-      original_artist = 'Goosehouse'
-      original_title = title
-     when /ココロオドル\/nobodyknows+/
-      original_artist = 'nobodyknows+'
-      original_title = title.gsub(/\/nobodyk[\W\w].*/,'')
-    when /汽車のうた|ハイウェイ賛歌/
-      original_artist = '関取花＆齋藤ジョニー'
-      original_title = title.gsub(/\W\w.*/,'')
-    when /カントリー・ロード/
-      original_artist = '本名陽子'
-      original_title  = 'カントリー・ロード'
-    when /Cover|cover|Coverr/
-      original_artist = title.gsub(/\s\WCover\W|\WCover\W|\s\Wcover\W|\Wcover\W|\WCoverr\W/,'').gsub(/[\W\w].*／/,'')
-      original_title = title.gsub(/\s\WCover\W|\WCover\W|\s\Wcover\W|\Wcover\W|\WCoverr\W/,'').gsub(/／[\W\w].*/,'')
-    when /^Play You|^playyou/
-      original_artist = 'Play You. House'
-      original_title = title
-    when /Play You|PlayYou/
-      original_artist = 'Play You. House'
-      original_title = title.gsub(/Play You.*/,'')
-    when /\WGoose.*/
-      original_artist = 'Goosehouse'
-      original_title = title.gsub(/\WGoose[\W|\w].*|\WGoose[\W|\w].*/,'')
-    when /／Original|／（Original）/
-     original_artist = 'Goosehouse'
-     original_title = title.gsub(/／Original|／（Original） /,'')
-    when /18歳／（Original）/
-     original_artist = 'Goosehouse'
-     original_title = title.gsub(/／[\W|\w].*/,'')
-    when /／[\W|\w].*（Original）/
-      original_artist = title.gsub(/[\W|\w].*／/,'').delete('（Original）')
-      original_title = title.gsub(/／[\W|\w].*/,'')
-    # ここからは判定順序を考慮
-    when /竹渕 慶/
-      original_artist = '竹渕 慶'
-      original_title = title.gsub(/／[\W|\w].*/,'')
-    when /／|\//
-      original_artist = title.gsub(/[\W|\w].*／|[\W|\w].*\//,'')
-      original_title = title.gsub(/／[\W|\w].*|\/[\W|\w].*/,'')
-    when /Goose/
-        original_artist = 'Goosehouse'
-        original_title = title
-    when /こんどのHOUSEは、ストリーミングでは観られない/
-        original_artist = 'Play You. House'
-        original_title = title
-    else
-      original_artist = title
-      original_title = title
+  def split(video_snippet={})
+    yaml = YAML.load_file('config/data.yaml')
+
+    # YAMLファイルに該当エントリーがある場合は先に返す
+    if yaml.keys.include?( video_snippet[:id] )
+      original_title  = yaml[video_snippet[:id]]['original_title']
+      original_artist = yaml[video_snippet[:id]]['original_artist']
+      return original_artist,original_title
     end
-    return original_artist.chomp,original_title.chomp
+
+    # カバー動画のみ抽出
+    #   - カバー動画以外のタイトルは規則性がないため
+    #
+    # 栄光の架け橋／ゆず（Coverr）対応
+    #   - H-Wut0BVQ_U
+    if video_snippet[:title].match( /coverr/i )
+      original_title  = video_snippet[:title].gsub(/\／.*/,'')
+                                             .gsub(/\Wcoverr\W/i,'')
+                                             .gsub(/^\s|\s$/,'')
+      original_artist = video_snippet[:title].gsub(/.*\/|.*\／/,'')
+                                             .gsub(/\Wcoverr\W/i,'')
+					     .gsub(/^\s|\s$/,'')
+    elsif video_snippet[:title].match( /cover/i )
+      if video_snippet[:title].match( /\／/ )
+        original_title  = video_snippet[:title].gsub(/\／.*/,'')
+                                               .gsub(/\Wcover\W/i,'')
+                                               .gsub(/^\s|\s$/,'')
+      else
+        original_title  = video_snippet[:title].gsub(/\/.*|\／.*/,'')
+                                               .gsub(/\Wcover\W/i,'')
+                                               .gsub(/^\s|\s$/,'')
+      end
+      original_artist = video_snippet[:title].gsub(/.*\/|.*\／/,'')
+                                             .gsub(/\Wcover\W/i,'')
+					     .gsub(/^\s|\s$/,'')
+
+    # ====== Play You. Houseなタイトル ======
+    # Play You. House
+    # Play You.House
+    # playyou house
+    # PlayYou House
+    # playyouhouse
+    # /Play\sYou\.\sHouse|Play\sYou\.House|playyou\shouse|playyouhouse/i
+    elsif video_snippet[:title].match( /Play\sYou\.\sHouse|Play\sYou\.House|playyou\shouse|playyouhouse/i )
+
+      # "Sing／PlayYou House（Original）" みたいな文字列への対応
+      if video_snippet[:title].match( /\／/ )
+        original_title  = video_snippet[:title].gsub(/\/.*|\／.*/,'')
+      else
+        original_title  = video_snippet[:title]
+      end
+
+      original_artist = 'Play You. House'
+    # cover|Coverという文字はないがタイトルとアーティスト名の間にスラッシュがあるもの
+    elsif video_snippet[:title].match( /\/|\／/ )
+      if video_snippet[:title].match( /original/i )
+        # Goosehouseオリジナルと見なす
+        #   - この分岐を通るPlay You. HouseエントリーはYAMLへ記載済み
+        #     - oSL2nCSD17g,6e3KeO4ICKI
+        original_title  = video_snippet[:title].gsub(/\/.*|\／.*/,'')
+        original_artist = 'Goosehouse'
+      elsif video_snippet[:title].match( /goose/i )
+        original_title  = video_snippet[:title].gsub(/\/.*|\／.*/,'')
+        original_artist = 'Goosehouse'
+      else
+        # タイトルにスラッシュを含むエントリー
+        #   - この分岐を通る日時を表すスラッシュを含むエントリーはYAMLへ記載済み
+        #      - 6p-B0AgbXtA
+        original_title  = video_snippet[:title].gsub(/\/.*|\／.*/,'')
+        original_artist = video_snippet[:title].gsub(/.*\/|.*\／/,'')
+                                               .gsub(/^\s|\s$/,'')
+      end
+    elsif video_snippet[:title].match( /goose/i )
+      original_title  = video_snippet[:title].gsub(/\Wcover\W/i,'').gsub(/^\s|\s$/,'')
+      original_artist = 'Goosehouse'
+    else
+      original_artist = original_title  = video_snippet[:title].gsub(/\Wcover\W/i,'').gsub(/^\s|\s$/,'')
+    end
+
+    return original_artist,original_title
   end
+
 end
