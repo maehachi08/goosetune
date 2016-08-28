@@ -45,8 +45,8 @@ class Goosetune::Ustream::Video < Goosetune::Ustream
   def get_view_counts
     view_counts = {}
 
-    @response['results'].each do |entry|
-      view_counts[:"#{entry['id']}"] = entry['totalViews'].chomp
+    @response['videos'].each do |entry|
+      view_counts[:"#{entry['id']}"] = entry['views']
     end
 
     view_counts
