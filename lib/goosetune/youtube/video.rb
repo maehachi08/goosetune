@@ -45,6 +45,8 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
   end
 
   def get_youtubes(term: '')
+    raise get_request(search_params(term)).to_yaml
+
     videos = struct_youtubes(get_request(search_params(term)))
     channel = Goosetune::Youtube::Channel.new
     next_token = channel.next_page_token(term)
