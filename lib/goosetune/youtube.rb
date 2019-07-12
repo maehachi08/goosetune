@@ -33,6 +33,7 @@ class Goosetune::Youtube
 
   def get_request(options='')
     uri = URI.parse(URI.escape(BASE_URL + options))
+    puts uri
     json = Net::HTTP.get(uri)
     JSON.parse(json)
   end
