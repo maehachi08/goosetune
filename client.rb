@@ -4,13 +4,7 @@ require 'goosetune'
 require 'yaml'
 require 'pp'
 
-goosetune = Goosetune::Youtube::Video.new
-hash = {}
+client = Goosetune::Youtube::Video.new(youtube_channnel_id='UCx66obAJ42B0XwHIm_iupkw')
+response = client.get_youtubes_by_year('2019')
+puts response.to_yaml
 
-%w( 2016 ).each do |year|
-  puts year
-  # hash.merge!( goosetune.get_youtubes_by_year( year ) )
-  goosetune.get_youtubes_by_year( year )
-end
-
-puts hash.to_yaml
