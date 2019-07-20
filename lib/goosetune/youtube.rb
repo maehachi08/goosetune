@@ -34,11 +34,12 @@ class Goosetune::Youtube
     _parameters = []
     _parameters << 'search'
     _parameters << '?part=snippet'
+    _parameters << '&channelId=' + @youtube_channnel_id
+    _parameters << '&key=' + API_KEY
     _parameters << '&maxResults=50'
     _parameters << '&order=date'
     _parameters << '&type=video'
-    _parameters << '&channelId=' + @youtube_channnel_id
-    _parameters << '&key=' + API_KEY
+    _parameters << options
     _parameters.join('')
   end
 
