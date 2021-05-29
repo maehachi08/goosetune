@@ -1,6 +1,6 @@
 class Goosetune::Youtube::Video < Goosetune::Youtube
   def term(year)
-    "&publishedAfter=#{year}-01-01t00:00:00z" + "&publishedBefore=#{year}-12-31t23:59:59z"
+    "&publishedAfter=#{year}-01-01T00:00:00Z" + "&publishedBefore=#{year}-12-31T23:59:59Z"
   end
 
   def get_youtubes_by_year(year='2015')
@@ -45,8 +45,6 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
   end
 
   def get_youtubes(term: '')
-    raise get_request(search_params(term)).to_yaml
-
     videos = struct_youtubes(get_request(search_params(term)))
     channel = Goosetune::Youtube::Channel.new
     next_token = channel.next_page_token(term)
@@ -66,20 +64,23 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
 
     channel_response['items'].each do |item|
       video_snippet = {}
-      video_snippet[:id]          = video_id = item['id']['videoId']
-      video_snippet[:view_counts] = view_count(video_id)
-      video_snippet[:url]         = "https://www.youtube.com/watch?v=#{video_id}"
-      video_snippet[:published]   = item['snippet']['publishedAt']
-      video_snippet[:title]       = item['snippet']['title']
-      video_snippet[:thumbnail]   = item['snippet']['thumbnails']['medium']['url']
+      video_snippet[:id]                  = video_id = item['id']['videoId']
+      video_snippet[:view_counts]         = view_count(video_id)
+      video_snippet[:url]                 = "https://www.youtube.com/watch?v=#{video_id}"
+      video_snippet[:published]           = item['snippet']['publishedAt']
+      video_snippet[:title]               = item['snippet']['title']
+      video_snippet[:thumbnail]           = item['snippet']['thumbnails']['medium']['url']
       video_snippet[:original_artist],
-      video_snippet[:original_title] = split( id: video_snippet[:id], title: video_snippet[:title] )
+      video_snippet[:original_title]      = title_parser( id: video_snippet[:id], title: video_snippet[:title] )
+      video_snippet[:youtube_channnel_id] = @youtube_channnel_id
       videos[video_id] = video_snippet
     end
     videos
   end
 
-  def split(video_snippet={})
+  # title_parser function
+  #   return original_artist, original_title
+  def title_parser(video_snippet={})
     yaml = YAML.load_file('config/data.yaml')
 
     # YAMLファイルに該当エントリーがある場合は先に返す
@@ -89,6 +90,49 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
       return original_artist,original_title
     end
 
+    if is_playgoose_channnel?
+      if video_snippet[:title].match( /cover/i )
+        original_artist,
+        original_title =  title_split_with_cover(video_snippet[:title])
+
+      # cover|Coverという文字はないがタイトルとアーティスト名の間にスラッシュがあるもの
+      elsif video_snippet[:title].match( /\/|\／/ )
+        original_title  = video_snippet[:title].gsub(/\/.*|\／.*/,'')
+        original_artist = video_snippet[:title].gsub(/.*\/|.*\／/,'')
+                                               .gsub(/^\s|\s$/,'')
+                                               .gsub(/\WPlay.Goose.*ver.*\W/i,'')
+      else
+        original_title  = video_snippet[:title]
+        original_artist = 'Play.Goose'
+
+      end
+      return original_artist.rstrip, original_title
+
+    elsif is_playyouhouse_channel?
+      puts ''
+
+    end
+  end
+
+  def title_split_with_cover(title)
+
+    if title.match( /\／/ )
+      original_title  = title.gsub(/\／.*/,'')
+                             .gsub(/\Wcover\W/i,'')
+                             .gsub(/^\s|\s$/,'')
+    else
+      original_title  = title.gsub(/\/.*|\／.*/,'')
+                             .gsub(/\Wcover\W/i,'')
+                             .gsub(/^\s|\s$/,'')
+    end
+    original_artist = title.gsub(/.*\/|.*\／/,'')
+                           .gsub(/\Wcover\W.*/i,'')
+                           .gsub(/^\s|\s$/,'')
+
+    return original_artist, original_title
+  end
+
+  def split(video_snippet)
     # カバー動画のみ抽出
     #   - カバー動画以外のタイトルは規則性がないため
     #
