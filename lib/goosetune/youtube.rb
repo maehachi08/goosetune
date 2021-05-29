@@ -2,7 +2,8 @@ class Goosetune::Youtube
   Dotenv.load
 
   API_KEY = ENV["API_KEY"]
-  CHANNEL_ID = 'UCFDL0NuxUBAvvu1PnIwW2ww' #playyouhousejp
+  CHANNEL_ID_PYAYYOUHOUSE = 'UCFDL0NuxUBAvvu1PnIwW2ww' #playyouhousejp
+  CHANNEL_ID_PYAYGOOSE = 'UCx66obAJ42B0XwHIm_iupkw'    #playgoose
   GOOGLE_API_URL = 'https://www.googleapis.com/'
   BASE_URL = GOOGLE_API_URL + 'youtube/v3/'
 
@@ -13,7 +14,7 @@ class Goosetune::Youtube
   end
 
   def is_playgoose_channnel?
-    if @youtube_channnel_id == 'UCx66obAJ42B0XwHIm_iupkw'
+    if @youtube_channnel_id == CHANNEL_ID_PYAYGOOSE
       return true
     else
       return false
@@ -21,7 +22,7 @@ class Goosetune::Youtube
   end
 
   def is_playyouhouse_channel?
-    if @youtube_channnel_id == 'CFDL0NuxUBAvvu1PnIwW2ww'
+    if @youtube_channnel_id == CHANNEL_ID_PYAYYOUHOUSE
       return true
     else
       return false
