@@ -1,6 +1,6 @@
 class Goosetune::Youtube::Video < Goosetune::Youtube
   def term(year)
-    "&publishedAfter=#{year}-01-01t00:00:00z" + "&publishedBefore=#{year}-12-31t23:59:59z"
+    "&publishedAfter=#{year}-01-01T00:00:00Z" + "&publishedBefore=#{year}-12-31T23:59:59Z"
   end
 
   def get_youtubes_by_year(year='2015')
