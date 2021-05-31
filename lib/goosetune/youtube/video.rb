@@ -109,7 +109,8 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
       return original_artist.rstrip, original_title
 
     elsif is_playyouhouse_channel?
-      puts ''
+      original_artist,
+      original_title = split(video_snippet)
 
     end
   end
@@ -144,7 +145,7 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
                                              .gsub(/^\s|\s$/,'')
       original_artist = video_snippet[:title].gsub(/.*\/|.*\／/,'')
                                              .gsub(/\Wcoverr\W/i,'')
-					     .gsub(/^\s|\s$/,'')
+                                             .gsub(/^\s|\s$/,'')
     elsif video_snippet[:title].match( /cover/i )
       if video_snippet[:title].match( /\／/ )
         original_title  = video_snippet[:title].gsub(/\／.*/,'')
@@ -157,7 +158,7 @@ class Goosetune::Youtube::Video < Goosetune::Youtube
       end
       original_artist = video_snippet[:title].gsub(/.*\/|.*\／/,'')
                                              .gsub(/\Wcover\W/i,'')
-					     .gsub(/^\s|\s$/,'')
+                                             .gsub(/^\s|\s$/,'')
 
     # ====== Play You. Houseなタイトル ======
     # Play You. House

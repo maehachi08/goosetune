@@ -4,7 +4,9 @@ require 'goosetune'
 require 'yaml'
 require 'pp'
 
-client = Goosetune::Youtube::Video.new(youtube_channnel_id='UCx66obAJ42B0XwHIm_iupkw')
-response = client.get_youtubes_by_year('2019')
+goosehouse = 'UCFDL0NuxUBAvvu1PnIwW2ww'
+pyaygoose = 'UCx66obAJ42B0XwHIm_iupkw'
+client = Goosetune::Youtube::Video.new(youtube_channnel_id=goosehouse)
+response = client.get_youtubes
 puts response.to_yaml
 
